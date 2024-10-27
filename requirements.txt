@@ -1,0 +1,15 @@
+uvicorn
+hypercorn
+fastapi
+pymongo
+
+requests
+pandas
+bs4
+lxml
+
+selenium
+pandas
+pyairtable
+apscheduler
+parsel

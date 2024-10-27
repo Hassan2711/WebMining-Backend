@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://unpkg.com/htmx.org@1.9.12"></script>
+
+    <style>
+        .disabled {
+            opacity: 0.5;
+            pointer-events: none;
+        }
+    </style>
+
+    <title>Grants Gov</title>
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+
+</head>
+
+<body>
+    <!-- <div hx-get="http://localhost:8000/" hx-trigger="load" hx-swap="outerHTML">
+        Loading...
+    </div> -->
+
+    <div class="container">
+
+        <h1>Dashboard Simulation (Grants Scraper)
+            <div id="light" class="idle"></div>
+        </h1>
+        <br>
+    
+        <div>
+            <style>
+                #light {
+                    width: 20px; 
+                    height: 20px; 
+                    border-radius: 50%; 
+                    display: inline-block;
+                }
+                .idle {
+                    background-color: grey;
+                }
+                .running {
+                    background-color: #FFD700;
+                    animation: blink 1s infinite;
+                }
+                .stopped {
+                    background-color: red;
+                }
+                .completed {
+                    background-color: green;
+                }
+                .blink {
+                animation: blink 1s steps(1, end) infinite;
+                }
+    
+            @keyframes blink {
+            0% {
+                opacity: 1;
+            }
+            50% {
+                opacity: 0;
+            }
+            100% {
+                opacity: 1;
+            }
+            }
+            </style>
+            <!-- light to show progress. idle is grey, running is yellow, stopped is red, and completed is green -->
+            
+            <!-- <h2>Grants Scraper
+                <div id="light" class="idle"></div>
+            </h2> -->
+            <p>Click the start button to start the scraping process. Click the stop button to stop the scraping process.</p>
+        </div>
+    
+        <div>
+            <!-- start button and show response in alert -->
+            <button id="start" type="button" class="btn btn-primary">Start</button>
+            <!-- <button id="stop" type="button" class="btn btn-primary">Stop</button>    -->
+            <button id="status" type="button" class="btn btn-primary">Status</button>
+        </div>
+    
+    
+        <table id="myTable" class="display">
+            <thead>
+                <!-- <tr>
+                    <th>Column 1</th>
+                    <th>Column 2</th>
+                </tr> -->
+            </thead>
+            <tbody>
+                <!-- <tr>
+                    <td>Row 1 Data 1</td>
+                    <td>Row 1 Data 2</td>
+                </tr>
+                <tr>
+                    <td>Row 2 Data 1</td>
+                    <td>Row 2 Data 2</td>
+                </tr> -->
+            </tbody>
+        </table>
+
+    </div>
+
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"
+        integrity="sha512-v2CJ7UaYy4JwqLDIrZUI/4hqeoQieOmAZNXBeQyjo21dadnwR+8ZaIJVT8EE2iyI61OV8e6M8PP2/4hpQINQ/g=="
+        crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <link rel="stylesheet" href="https://cdn.datatables.net/2.0.5/css/dataTables.dataTables.css" />
+    <script src="https://cdn.datatables.net/2.0.5/js/dataTables.js"></script>
+    
+    <script>
+        let status = 'idle'; // idle, running, stopped, completed
+        fetch('/scraper/yellowpages/status')
+            .then(response => response.json())
+            .then(data => {
+                console.log(data);
+                status = data.status;
+                if (status === 'in_progress') {
+                    document.getElementById('light').className = 'running';
+                    // add blink
+                    document.getElementById('light').classList.add('blink');
+                } else if (status === 'stopped') {
+                    document.getElementById('light').className = 'stopped';
+                } else if (status === 'completed') {
+                    document.getElementById('light').className = 'completed';
+                } else {
+                    document.getElementById('light').className = 'idle';
+                }
+            });
+
+
+
+        // start button
+        document.getElementById('start').addEventListener('click', function() {
+            // alert('Scraping started');
+            document.getElementById('light').className = 'running';
+            fetch('/scraper/yellowpages/start', {
+                // method: 'POST'
+            })
+                .then(response => response.json())
+                .then(data => {
+                    console.log(data);
+                    alert(data.status);
+                    status = data.status;
+                    console.log(status)
+                    if (status == 'in_progress') {
+                        document.getElementById('light').className = 'running'; 
+                    } else if (status == 'stopped') {
+                        document.getElementById('light').className = 'stopped';
+                    } else if (status == 'completed') {
+                        document.getElementById('light').className = 'completed';
+                    } else {
+                        document.getElementById('light').className = 'idle';
+                    }
+                });
+        });
+        document.getElementById('status').addEventListener('click', function() {
+            alert('Status: ' + status);
+        });
+    </script>
+    
+    <script>
+        let data = [
+            [
+                "Tiger Nixon",
+                "System Architect",
+                "Edinburgh",
+                "5421",
+                "2011/04/25",
+                "$3,120"
+            ],
+            [
+                "Garrett Winters",
+                "Director",
+                "Edinburgh",
+                "8422",
+                "2011/07/25",
+                "$5,300"
+            ]
+        ]
+
+        fetch('/scraper/yellowpages_demo')
+            .then(response => response.json())
+            .then(data => {
+                console.log(data);
+                // return data;
+                var table = $('#myTable').DataTable({
+            data: data,
+            columns: [{
+                    title: "Name"
+                },
+                {
+                    title: "Address"
+                },
+                {
+                    title: "Phone"
+                },
+                {
+                    title: "Link"
+                },
+                {
+                    title: "Status"
+                },
+                {
+                    title: "Action"
+                }
+            ],
+
+            // columns: [{
+            //         title: "Opportunity Number"
+            //     },
+            //     {
+            //         title: "Opportunity Title"
+            //     },
+            //     {
+            //         title: "Agency"
+            //     },
+            //     {
+            //         title: "Opportunity Status"
+            //     },
+            //     {
+            //         title: "Posted Date"
+            //     },
+            //     {
+            //         title: "Close Date"
+            //     },
+            //     {
+            //         title: "Action"
+            //     }
+            // ],
+            columnDefs: [{
+                data: null,
+                defaultContent: '<button>Click!</button>',
+                targets: -1
+            }]
+        });
+
+        table.on('click', 'button', function (e) {
+            let data = table.row(e.target.closest('tr')).data();
+            
+            if (data[4] === "Sent") {
+                alert("This data has already been sent an your website.");
+                return;
+            }
+
+            // alert(data[0] + "'s status is: " + data[4]);
+            alert("Data sent to your website successfully.");
+
+            // Change the status
+            data[4] = "Sent";  // Assuming the status is in the 5th column (index 4)
+
+            // Update the row data
+            table.row(e.target.closest('tr')).data(data).draw();
+
+            // // Disable the button
+            // e.target.disabled = true;
+
+            });
+
+            })
+
+
+            // $(document).ready(function () {
+        //     $('#myTable').DataTable({
+        //     // let table = DataTable('#myTable', {
+        //         data: data,
+        //         columns: [{
+        //                 title: "Name"
+        //             },
+        //             {
+        //                 title: "Position"
+        //             },
+        //             {
+        //                 title: "Office"
+        //             },
+        //             {
+        //                 title: "Extn."
+        //             },
+        //             {
+        //                 title: "Start date"
+        //             },
+        //             {
+        //                 title: "Salary"
+        //             }
+        //         ],
+        //         columnDefs: [
+        //             {
+        //                 data: null,
+        //                 defaultContent: '<button>Click!</button>',
+        //                 targets: -1
+        //             }
+        //         ]
+        //     });
+        //     table.on('click', 'button', function (e) {
+        //         let data = table.row(e.target.closest('tr')).data();
+             
+        //         alert(data[0] + "'s salary is: " + data[5]);
+        //     });
+        // });
+
+         
+    </script>
+
+
+<!-- <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/popper.js@1.12.9/dist/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script> -->
+
+</body>
+
+</html>
