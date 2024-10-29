@@ -24,27 +24,34 @@ class ScrapingTask:
     #     # if self.progress == 100:
     #     #     self.status = "completed"
 
-    def start(self, scraper_name):
+    def start(self, scraper_name, state=None, category=None):
         self.scrape_name = scraper_name
         self.status = "in_progress"
         self.available = False
+        self.state = state
+        self.categort = category
 
         # Process the response here
         if self.scrape_name == "yellowpages":
             # Create a new thread to run the yellow_pages function
             func = self.run_yellow_pages
+            args = (self.db, self.run_after_thread, state, category)
         elif self.scrape_name == "grants":
             # Create a new thread to run the grants function
             func = self.run_grants
+            args = (self.db, self.run_after_thread)
         elif self.scrape_name == "article_factory":
             # Create a new thread to run the article_factory function
             func = self.run_article_factory
+            args = (self.db, self.run_after_thread)
         elif self.scrape_name == "google_jobs":
             # Create a new thread to run the google_jobs function
             func = self.run_google_jobs
+            args = (self.db, self.run_after_thread)
         elif self.scrape_name == "procurement":
             # Create a new thread to run the procurement function
             func = self.run_procurement
+            args = (self.db, self.run_after_thread)
         else:
             self.status = "invalid_scraper"
             self.available = True
@@ -52,7 +59,7 @@ class ScrapingTask:
         
         thread = threading.Thread(
             target=func,
-            args=(self.db, self.run_after_thread)
+            args=args
         )
         
         thread.start()
@@ -63,7 +70,8 @@ class ScrapingTask:
         return {
             "scraper_name": self.scrape_name,
             "status": self.status,
-            "available": self.available
+            "available": self.available,
+            "state" : self.state,
         }
         
     def run_after_thread(self):
@@ -75,9 +83,9 @@ class ScrapingTask:
     
     # Define the functions to run in the new thread
     
-    def run_yellow_pages(self, database, callback):
+    def run_yellow_pages(self, database, callback, state=None, category=None):
         scraper = yellowpages.YellowPagesScrape(db=database)
-        scraper.start()
+        scraper.start(state=state, category=category)
         callback()
     
     def run_grants(self, database, callback):

@@ -1,5 +1,7 @@
 from fastapi import APIRouter, Depends
 from shared import get_db, get_tasker
+from pydantic import BaseModel
+
 
 tag = "Yellow Pages"
 router = APIRouter()
@@ -64,9 +66,37 @@ def get_yellowpages_paginate(db=Depends(get_db), page: int = 1, limit: int = 10)
         "total_pages": total_pages
     }
 
+# Global dictionary to store settings
+settings_cache = {
+    "state": None,
+    "category": None
+}
+
+class YellowPagesSettings(BaseModel):
+    state: str
+    category: str
+
+@router.post("/scraper/yellowpages/start", tags=["yellowpages"])
+async def set_yellowpages_settings(settings: YellowPagesSettings, db=Depends(get_db), tasker=Depends(get_tasker)):
+    try:
+        # Update the global dictionary with new settings
+        settings_cache["state"] = settings.state
+        settings_cache["category"] = settings.category
+        print(settings.state)
+        print(settings.category)
+        
+        return
+    except Exception as e:
+        print(e)
+
 @router.get("/scraper/yellowpages/start", tags=[tag])
 def start_yellowpages(db=Depends(get_db), tasker=Depends(get_tasker)):
-    tasker.start("yellowpages")
+    state = settings_cache.get("state")
+    category = settings_cache.get("category")
+    print(state)
+    print(category)
+
+    tasker.start("yellowpages", state=state, category=category)
     return tasker.get_status()
 
 

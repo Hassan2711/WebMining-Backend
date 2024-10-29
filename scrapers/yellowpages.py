@@ -4,11 +4,13 @@ import pandas as pd
 from datetime import datetime
 from .base import BaseScraper
 
-def scrape_yellowpages(total_pages=None, search_for=None, city=None, state=None):
+def scrape_yellowpages(total_pages=None, search_for=None,  state=None):
     print("Scraping Yellow Pages")
+    print(state)
+
     total_pages = "10" if total_pages is None else total_pages
     search_for = "Restaurants" if search_for is None else search_for
-    city = "San Francisco" if city is None else city
+    # city = "San Francisco" if city is None else city
     state = "CA" if state is None else state
 
     # Creating dataframe
@@ -27,7 +29,8 @@ def scrape_yellowpages(total_pages=None, search_for=None, city=None, state=None)
         print(f'Scraping page {page}...')
         try:
             html_text = requests.get(
-                f'https://www.yellowpages.com/search?search_terms={search_for}&geo_location_terms={city}%2C+{state}&page={page}').text
+                # f'https://www.yellowpages.com/search?search_terms={search_for}&geo_location_terms={city}%2C+{state}&page={page}').text
+                f'https://www.yellowpages.com/search?search_terms={search_for}&geo_location_terms={state}&page={page}').text
             soup = BeautifulSoup(html_text, 'lxml')
             listings = soup.find('div', class_='search-results organic').find_all('div', class_='result')
             for index, listing in enumerate(listings):
@@ -71,12 +74,13 @@ class YellowPagesScrape(BaseScraper):
     def __init__(self, **kwargs):
         super().__init__(name='yellowpages', **kwargs)
 
-    def start(self):
+    def start(self, state=None, category=None):
         print("Scraping Yellow Pages started...")
-        data = scrape_yellowpages()
+        data = scrape_yellowpages(search_for=category, state=state)
         # print('',len(data))
         if len(data) > 0:
             self.save(data)
+            print(data)
         else:
             print("No data found")
 
