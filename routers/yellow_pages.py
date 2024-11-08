@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Query
 from shared import get_db, get_tasker
 from pydantic import BaseModel
 
@@ -38,20 +38,55 @@ def get_yellowpages_demo(db=Depends(get_db), tasker=Depends(get_tasker)):
             data.get('address'),
             data.get('phone'),
             data.get('link'),
+            data.get('email'),
+            data.get('regular_hours'),
+            data.get('claimed'),
+            data.get('general_info'),
+            data.get('services_products'),
+            data.get('neighborhoods'),
+            data.get('amenities'),
+            data.get('languages'),
+            data.get('aka'),
+            data.get('social_links'),
+            data.get('categories'),
+            data.get('photos_url'),
+            data.get('other_info'),
+            data.get('other_links'),
             data.get('status'),
         ])
         # print(data.get('name'))
     # print()
     return data_list
 
-
 # paginate 
 @router.get("/scraper/yellowpages/paginate", tags=[tag])
-def get_yellowpages_paginate(db=Depends(get_db), page: int = 1, limit: int = 10):
+def get_yellowpages_paginate(
+    db=Depends(get_db), 
+    page: int = 1, 
+    limit: int = 10, 
+    filterBy: str = Query("null")
+):
     collection = db["yellowpages"]
-    total_count = collection.count_documents({})
+    
+    # Apply the filter based on `filterBy` value
+    query = {}
+    if filterBy == "Approved":
+        query["status"] = "Approved"
+    elif filterBy == "Rejected":
+        query["status"] = "Rejected"
+
+    # Use the `query` dictionary in `count_documents` and `find`
+    total_count = collection.count_documents(query)
     total_pages = (total_count + limit - 1) // limit
-    all_data = list(collection.find({}).sort("_id", -1).skip((page - 1) * limit).limit(limit))
+
+    # Apply filtering, pagination, and sorting
+    all_data = list(
+        collection.find(query)
+        .sort("_id", -1)
+        .skip((page - 1) * limit)
+        .limit(limit)
+    )
+    
     data_list = []
     for data in all_data:
         data_list.append({
@@ -59,12 +94,28 @@ def get_yellowpages_paginate(db=Depends(get_db), page: int = 1, limit: int = 10)
             "address": data.get('Address'),
             "phone": data.get('Phone'),
             "link": data.get('Link'),
+            "email": data.get('email'),
+            "regular_hours": data.get('regular_hours'),
+            "claimed": data.get('claimed'),
+            "general_info": data.get('general_info'),
+            "services_products": data.get('services_products'),
+            "neighborhoods": data.get('neighborhoods'),
+            "amenities": data.get('amenities'),
+            "languages": data.get('languages'),
+            "aka": data.get('aka'),
+            "social_links": data.get('social_links'),
+            "categories": data.get('categories'),
+            "photos_url": data.get('photos_url'),
+            "other_info": data.get('other_info'),
+            "other_links": data.get('other_links'),
             "status": data.get('status'),
         })
+    
     return {
         "data": data_list,
         "total_pages": total_pages
     }
+
 
 # Global dictionary to store settings
 settings_cache = {
