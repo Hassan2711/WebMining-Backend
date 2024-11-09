@@ -9,6 +9,7 @@ pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 db = get_db()
 users_collection = db["users"]
+checkedby_collection = db["checkedby"]
 
 class UserCreate(BaseModel):
     username: str
@@ -79,3 +80,35 @@ def get_current_user(authorization: str = Header(None)):
         "name": user["username"],
         "role": user["role"]
     }
+
+    
+class CheckedByModel(BaseModel):
+    yellowpages: str = ""
+    procurement: str = ""
+    grants: str = ""
+    articles: str = ""
+
+# Add or update a checkedby entry
+@router.put("/checkedby/start")
+def update_checkedby_field(field: str, authorization: str = Header(None)):
+    if not authorization or not authorization.startswith("Bearer "):
+        raise HTTPException(status_code=401, detail="Authorization header missing or invalid format")
+
+    # Extract the username from the token
+    token = authorization.split(" ")[1]
+    if not token.startswith("fake-jwt-token-for-"):
+        raise HTTPException(status_code=401, detail="Invalid token")
+
+    username = token.replace("fake-jwt-token-for-", "")
+
+    # Ensure the field is one of the expected values
+    if field not in ["yellowpages", "procurement", "grants", "articles"]:
+        raise HTTPException(status_code=400, detail="Invalid field name")
+
+    # Update the specified field with the username
+    result = checkedby_collection.update_one({}, {"$set": {field: username}}, upsert=True)
+
+    if result.modified_count > 0:
+        return {"message": f"{field} checked by {username}"}
+    else:
+        return {"message": f"New {field} entry created by {username}"}
