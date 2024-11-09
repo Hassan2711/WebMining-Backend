@@ -13,7 +13,8 @@ from routers import (
     grants_gov, 
     procurement,
     article_factory,
-    google
+    google,
+    users
 )
 
 # create the FastAPI app
@@ -35,6 +36,7 @@ app.include_router(procurement.router, dependencies=[Depends(get_db), Depends(ge
 app.include_router(yellow_pages.router, dependencies=[Depends(get_db), Depends(get_tasker)])
 app.include_router(article_factory.router, dependencies=[Depends(get_db), Depends(get_tasker)])
 app.include_router(google.router, dependencies=[Depends(get_db), Depends(get_tasker)])
+app.include_router(users.router, dependencies=[Depends(get_db), Depends(get_tasker)])
 
 scheduler = BackgroundScheduler()
 
