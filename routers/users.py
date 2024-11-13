@@ -83,10 +83,10 @@ def get_current_user(authorization: str = Header(None)):
 
     
 class CheckedByModel(BaseModel):
-    yellowpages: str = ""
-    procurement: str = ""
-    grants: str = ""
-    articles: str = ""
+        yellowpages: str = ""
+        procurement: str = ""
+        grants_gov: str = ""
+        article_factory: str = ""
 
 # Add or update a checkedby entry
 @router.put("/checkedby/start")
@@ -102,7 +102,7 @@ def update_checkedby_field(field: str, authorization: str = Header(None)):
     username = token.replace("fake-jwt-token-for-", "")
 
     # Ensure the field is one of the expected values
-    if field not in ["yellowpages", "procurement", "grants", "articles"]:
+    if field not in ["yellowpages", "procurement", "grants_gov", "article_factory"]:
         raise HTTPException(status_code=400, detail="Invalid field name")
 
     # Update the specified field with the username
@@ -112,3 +112,19 @@ def update_checkedby_field(field: str, authorization: str = Header(None)):
         return {"message": f"{field} checked by {username}"}
     else:
         return {"message": f"New {field} entry created by {username}"}
+    
+@router.get("/checkedby/")
+def get_checkedby():    
+    # Retrieve the checkedby document for the user
+    checkedby_data = checkedby_collection.find_one({})
+
+    if not checkedby_data:
+        raise HTTPException(status_code=404, detail="Checked by data not found")
+
+    # Return the checkedby fields
+    return {
+        "yellowpages": checkedby_data.get("yellowpages", ""),
+        "procurement": checkedby_data.get("procurement", ""),
+        "grants_gov": checkedby_data.get("grants_gov", ""),
+        "article_factory": checkedby_data.get("article_factory", "")
+    }

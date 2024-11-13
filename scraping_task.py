@@ -16,40 +16,27 @@ class ScrapingTask:
         self.available = True
         self.db = database
 
-    # def update_progress(self):
-    #     self.available = False
-    #     self.status = "in_progress"
-    #     # self.scraped_data.extend(data)
-    #     # self.progress = (self.current_source_index + 1) / len(self.sources) * 100
-    #     # if self.progress == 100:
-    #     #     self.status = "completed"
-
     def start(self, scraper_name, state=None, category=None):
         self.scrape_name = scraper_name
         self.status = "in_progress"
         self.available = False
         self.state = state
-        self.categort = category
+        self.category = category  # Fixed the typo here
 
-        # Process the response here
+        # Choose which scraper function to run based on the scraper name
         if self.scrape_name == "yellowpages":
-            # Create a new thread to run the yellow_pages function
             func = self.run_yellow_pages
             args = (self.db, self.run_after_thread, state, category)
         elif self.scrape_name == "grants":
-            # Create a new thread to run the grants function
             func = self.run_grants
             args = (self.db, self.run_after_thread)
         elif self.scrape_name == "article_factory":
-            # Create a new thread to run the article_factory function
             func = self.run_article_factory
             args = (self.db, self.run_after_thread)
         elif self.scrape_name == "google_jobs":
-            # Create a new thread to run the google_jobs function
             func = self.run_google_jobs
             args = (self.db, self.run_after_thread)
         elif self.scrape_name == "procurement":
-            # Create a new thread to run the procurement function
             func = self.run_procurement
             args = (self.db, self.run_after_thread)
         else:
@@ -57,37 +44,35 @@ class ScrapingTask:
             self.available = True
             return "Invalid scraper name"
         
-        thread = threading.Thread(
-            target=func,
-            args=args
-        )
-        
+        # Start the scraper in a new thread
+        thread = threading.Thread(target=func, args=args)
         thread.start()
-        # Return the response immediately
-        return "Running yellow_pages function in non-blocking mode"
+
+        # Return immediately while the thread continues running
+        return f"Running {self.scrape_name} function in non-blocking mode"
 
     def get_status(self):
         return {
             "scraper_name": self.scrape_name,
             "status": self.status,
             "available": self.available,
-            "state" : self.state,
+            "state": self.state,
+            "category": self.category  # Ensure category is included in the status
         }
-        
+
     def run_after_thread(self):
         self.complete()
 
     def complete(self):
         self.status = "completed"
         self.available = True
-    
-    # Define the functions to run in the new thread
-    
+
+    # Define the scraper functions
     def run_yellow_pages(self, database, callback, state=None, category=None):
         scraper = yellowpages.YellowPagesScrape(db=database)
         scraper.start(state=state, category=category)
         callback()
-    
+
     def run_grants(self, database, callback):
         scraper = grants.GrantsScrape(db=database)
         scraper.start()
@@ -99,15 +84,16 @@ class ScrapingTask:
         callback()
 
     def run_google_jobs(self, database, callback):
-        # TODO: fix this
         try:
             scraper = googlejobs.GoogleJobsScraper(db=database)
             scraper.start()
             callback()
         except Exception as e:
-            print(e)
-        
-        
+            print(f"Error running Google Jobs scraper: {e}")
+            self.status = "failed"
+            self.available = True
+            callback()  # Ensure the callback is called after failure to update status
+
     def run_procurement(self, database, callback):
         scraper = procurement.ProcurementScrape(db=database)
         scraper.start()
@@ -118,4 +104,5 @@ class ScrapingTask:
             airtable.save_to_local_work(data)
         elif table_name in ["yellowpages", "article_factory"]:
             airtable.save_to_ba_trips(data)
-
+        else:
+            print(f"Unknown table name: {table_name}")
