@@ -1,5 +1,8 @@
 from fastapi import APIRouter, Depends
 from shared import get_db, get_tasker
+from fastapi.responses import StreamingResponse
+from io import BytesIO
+import pandas as pd
 
 tag = "Article Factory"
 router = APIRouter()
@@ -156,3 +159,27 @@ def sent_article_factory(db=Depends(get_db), tasker=Depends(get_tasker)):
     tasker.sent_to_airtable('article_factory', data_list)
     
     # print(data_list)
+
+@router.get("/scraper/article_factory/download", tags=[tag])
+def download_article_factory_data(db=Depends(get_db)):
+    # Fetch data from the "article_factory" MongoDB collection
+    collection = db["article_factory"]
+    data = list(collection.find({}, {'_id': 0}))  # Exclude MongoDB's internal `_id`
+
+    if not data:
+        return {"error": "No data available for Article Factory."}
+
+    # Convert data to a Pandas DataFrame
+    df = pd.DataFrame(data)
+
+    # Create an in-memory CSV file
+    buffer = BytesIO()
+    df.to_csv(buffer, index=False)
+    buffer.seek(0)
+
+    # Return the CSV as a streaming response
+    return StreamingResponse(
+        buffer,
+        media_type="text/csv",
+        headers={"Content-Disposition": "attachment; filename=article_factory_data.csv"},
+    )

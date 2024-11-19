@@ -1,5 +1,8 @@
 from fastapi import APIRouter, Depends
 from shared import get_db, get_tasker
+from fastapi.responses import StreamingResponse
+from io import BytesIO
+import pandas as pd
 
 tag = "Grants Gov"
 router = APIRouter()
@@ -148,3 +151,27 @@ def sent_grants_gov(db=Depends(get_db), tasker=Depends(get_tasker)):
     tasker.sent_to_airtable('grants', data_list)
 
     # print(data_list)
+
+@router.get("/scraper/grants_gov/download", tags=[tag])
+def download_grants_gov_data(db=Depends(get_db)):
+    # Fetch all data from the "grants" collection
+    collection = db["grants"]
+    data = list(collection.find({}, {'_id': 0}))  # Exclude MongoDB's internal `_id`
+
+    if not data:
+        return {"error": "No data available for Grants Gov."}
+
+    # Convert data to a Pandas DataFrame
+    df = pd.DataFrame(data)
+
+    # Create an in-memory CSV file
+    buffer = BytesIO()
+    df.to_csv(buffer, index=False)
+    buffer.seek(0)
+
+    # Return the CSV as a streaming response
+    return StreamingResponse(
+        buffer,
+        media_type="text/csv",
+        headers={"Content-Disposition": "attachment; filename=grants_gov_data.csv"},
+    )

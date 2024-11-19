@@ -91,7 +91,7 @@ def get_detailed_info(link):
 
 def scrape_yellowpages(total_pages=None, search_for=None, state=None):
     print("Scraping Yellow Pages")
-    total_pages = "1" if total_pages is None else total_pages
+    total_pages = "10" if total_pages is None else total_pages
     search_for = "Restaurants" if search_for is None else search_for
     state = "CA" if state is None else state
 
