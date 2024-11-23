@@ -148,7 +148,7 @@ def sent_grants_gov(db=Depends(get_db), tasker=Depends(get_tasker)):
         })
         if count == 30:
             break
-    tasker.sent_to_airtable('grants', data_list)
+    # tasker.sent_to_airtable('grants', data_list)
 
     # print(data_list)
 

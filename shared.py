@@ -2,10 +2,10 @@ from pymongo import MongoClient
 from scraping_task import ScrapingTask
 import os
 
-
 MONGODB_URL = os.environ.get('MONGODB_URL')
-print(MONGODB_URL)
-
+if not MONGODB_URL:
+    raise ValueError("MONGODB_URL is not set!")
+print(f"MONGODB_URL: {MONGODB_URL}")
 
 # connect to the mongo database
 client = MongoClient(MONGODB_URL)

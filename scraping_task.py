@@ -4,10 +4,10 @@ from scrapers import procurement
 from scrapers import googlejobs
 from scrapers import grants
 import threading
-from airtable import Airtable
+# from airtable_service import Airtable
 
 # Airtable API
-airtable = Airtable()
+# airtable = Airtable()
 
 class ScrapingTask:
     def __init__(self, database, scraper_name=""):
@@ -99,10 +99,10 @@ class ScrapingTask:
         scraper.start()
         callback()
 
-    def sent_to_airtable(self, table_name, data):
-        if table_name in ["grants", "google_jobs", "procurement"]:
-            airtable.save_to_local_work(data)
-        elif table_name in ["yellowpages", "article_factory"]:
-            airtable.save_to_ba_trips(data)
-        else:
-            print(f"Unknown table name: {table_name}")
+    # def sent_to_airtable(self, table_name, data):
+    #     if table_name in ["grants", "google_jobs", "procurement"]:
+    #         airtable.save_to_local_work(data)
+    #     elif table_name in ["yellowpages", "article_factory"]:
+    #         airtable.save_to_ba_trips(data)
+    #     else:
+    #         print(f"Unknown table name: {table_name}")

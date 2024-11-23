@@ -156,7 +156,7 @@ def sent_article_factory(db=Depends(get_db), tasker=Depends(get_tasker)):
         if count == 10:
             break
         
-    tasker.sent_to_airtable('article_factory', data_list)
+    # tasker.sent_to_airtable('article_factory', data_list)
     
     # print(data_list)
 

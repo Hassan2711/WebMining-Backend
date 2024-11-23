@@ -9,8 +9,7 @@ bs4
 lxml
 
 selenium
-pandas
-pyairtable
+# pyairtable
 apscheduler
 parsel
 bcrypt

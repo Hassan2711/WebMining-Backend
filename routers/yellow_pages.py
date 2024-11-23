@@ -225,7 +225,7 @@ def send_yellowpages(db=Depends(get_db), tasker=Depends(get_tasker)):
     #         {"_id": data.get('_id')},
     #         {"$set": {"status": "sent"}}
     #     )
-    tasker.sent_to_airtable('yellowpages', data_list)
+    # tasker.sent_to_airtable('yellowpages', data_list)
     
 @router.get("/scraper/yellowpages/download", tags=[tag])
 def download_yellowpages_data(db=Depends(get_db)):
