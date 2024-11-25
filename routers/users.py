@@ -115,7 +115,7 @@ def update_checkedby_field(field: str, authorization: str = Header(None)):
     else:
         return {"message": f"New {field} entry created by {username}"}
     
-@router.get("/checkedby/")
+@router.get("/checkedby")
 def get_checkedby():    
     # Retrieve the checkedby document for the user
     checkedby_data = checkedby_collection.find_one({})
@@ -174,7 +174,7 @@ def update_download_field(field: str, authorization: str = Header(None)):
     else:
         return {"message": f"New {field} entry created by {username} at {current_time}"}
 
-@router.get("/downloadedby/")
+@router.get("/downloadedby")
 def get_downloadedby():
     # Retrieve the downloadedby document
     downloadedby_data = downloadedby_collection.find_one({})
