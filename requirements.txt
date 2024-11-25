@@ -5,11 +5,11 @@ pymongo
 
 requests
 pandas
-bs4
+beautifulsoup4
 lxml
 
 selenium
-# pyairtable
+webdriver-manager
 apscheduler
 parsel
 bcrypt

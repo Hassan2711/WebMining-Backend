@@ -9,13 +9,36 @@ from selenium.common.exceptions import NoSuchElementException, TimeoutException
 import pandas as pd
 from datetime import datetime
 from .base import BaseScraper
+import os
 
-def get_detailed_info(link):
-    # Initialize headless Chrome driver
+# Get Selenium Remote WebDriver URL from environment
+REMOTE_DRIVER_URL = os.getenv("REMOTE_DRIVER_URL", "https://selenium-hub-production-352b.up.railway.app/wd/hub")
+
+
+def init_remote_webdriver():
+    """Initialize the Remote WebDriver using the Selenium Grid."""
     options = Options()
     options.add_argument("--headless")
-    driver = webdriver.Chrome(options=options)
-       # Initialize all expected fields with empty strings
+    options.add_argument("--disable-gpu")
+    options.add_argument("--no-sandbox")
+    options.add_argument("--disable-dev-shm-usage")
+
+    try:
+        driver = webdriver.Remote(
+            command_executor=REMOTE_DRIVER_URL,
+            options=options
+        )
+        return driver
+    except Exception as e:
+        print(f"Failed to initialize Remote WebDriver: {e}")
+        raise
+
+
+def get_detailed_info(link):
+    # Initialize headless Chrome driver using remote server
+    driver = init_remote_webdriver()
+
+    # Initialize all expected fields with empty strings
     details = {
         'email': '',
         'regular_hours': '',
@@ -134,7 +157,6 @@ def scrape_yellowpages(total_pages=None, search_for=None, state=None):
                         "photos_url": detailed_info['photos_url'],
                         "other_info": detailed_info['other_info'],
                         "other_links": detailed_info['other_links'],
-                        # **detailed_info
                     }
                     results.append(result)
                     # Set the status within the same result dictionary
@@ -142,7 +164,7 @@ def scrape_yellowpages(total_pages=None, search_for=None, state=None):
                         result['status'] = 'Approved'
                     else:
                         result['status'] = 'Rejected'
-                                        
+                                                        
                 except Exception as e:
                     print(f"Error processing listing: {e}")
 
